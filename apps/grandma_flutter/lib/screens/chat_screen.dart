@@ -177,12 +177,11 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (_) {
       _showSnack("Αποτυχία αποστολής φωνητικού.");
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
       }
-      setState(() {
-        _isSending = false;
-      });
     }
   }
 
