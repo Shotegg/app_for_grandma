@@ -206,12 +206,13 @@ async function handleSendAudio(req: Request, contactId: string) {
     transcript = String(form.get("transcript") ?? "").trim();
     const file = form.get("audio");
     if (file instanceof File && file.size > 0) {
-      const ext = extensionFromMime(file.type);
+      const mimeType = normalizeAudioMime(file.type);
+      const ext = extensionFromMime(mimeType);
       audioPath = `${contactId}/${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from("voice")
-        .upload(audioPath, file, { contentType: file.type || "audio/m4a", upsert: false });
+        .upload(audioPath, file, { contentType: mimeType, upsert: false });
       if (uploadError) {
         return json({ error: uploadError.message }, 500);
       }
@@ -285,6 +286,16 @@ async function handleSendAudio(req: Request, contactId: string) {
   );
 }
 
+function normalizeAudioMime(mime: string) {
+  if (!mime || mime === "application/octet-stream") {
+    return "audio/m4a";
+  }
+  if (mime === "video/mp4") {
+    return "audio/mp4";
+  }
+  return mime;
+}
+
 function extensionFromMime(mime: string) {
   if (mime.includes("wav")) {
     return "wav";
@@ -355,4 +366,3 @@ function json(payload: unknown, status = 200) {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
-
