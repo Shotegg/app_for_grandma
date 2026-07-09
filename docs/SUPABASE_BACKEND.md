@@ -42,11 +42,11 @@ Typical local function URL:
 http://127.0.0.1:54321/functions/v1/api
 ```
 
-If the function keeps `verify_jwt = true`, Flutter must send a valid Supabase JWT. The current Flutter client does not do that yet.
+The API function currently uses `verify_jwt = false` and checks an optional `APP_API_TOKEN` secret through the `X-App-Token` request header. This is a short-term MVP gate so the Flutter app can call Edge Functions before full Supabase Auth is implemented.
 
 Short-term MVP options:
 
-1. Set `functions.api.verify_jwt = false` and add a custom shared app token check in `supabase/functions/api/index.ts`.
+1. Keep `functions.api.verify_jwt = false` and use the custom shared `APP_API_TOKEN` gate.
 2. Add Supabase Auth to Flutter and keep `verify_jwt = true`.
 
 Prefer option 2 for production. Option 1 is faster for a family-only MVP, but it must not rely on secrets embedded in a public client long term.
@@ -58,7 +58,7 @@ After linking the Supabase project:
 ```powershell
 npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
-npx supabase functions deploy api
+npx supabase functions deploy api --no-verify-jwt
 npx supabase functions deploy webhook-messenger
 npx supabase functions deploy webhook-viber
 ```
@@ -67,6 +67,7 @@ Set secrets in Supabase, not in Flutter:
 
 ```powershell
 npx supabase secrets set OPENAI_API_KEY=...
+npx supabase secrets set APP_API_TOKEN=...
 npx supabase secrets set MESSENGER_VERIFY_TOKEN=...
 npx supabase secrets set MESSENGER_PAGE_ACCESS_TOKEN=...
 npx supabase secrets set APP_SECRET=...
@@ -78,10 +79,10 @@ npx supabase secrets set VIBER_BOT_TOKEN=...
 Once the API access model is chosen, run Flutter with:
 
 ```powershell
-flutter run --dart-define=API_BASE_URL=https://YOUR_PROJECT_REF.supabase.co/functions/v1/api
+flutter run --dart-define=API_BASE_URL=https://YOUR_PROJECT_REF.supabase.co/functions/v1/api --dart-define=APP_API_TOKEN=...
 ```
 
-The current `ApiClient` only sends plain HTTP requests. If Supabase JWT or an app token is required, update `apps/grandma_flutter/lib/services/api_client.dart`.
+The current `ApiClient` sends `X-App-Token` when `APP_API_TOKEN` is supplied with `--dart-define`.
 
 ## Channel Webhook URLs
 

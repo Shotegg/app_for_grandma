@@ -13,7 +13,7 @@ type DbMessage = {
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
 };
 
@@ -22,6 +22,7 @@ const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const openAiApiKey = Deno.env.get("OPENAI_API_KEY") || "";
 const messengerPageAccessToken = Deno.env.get("MESSENGER_PAGE_ACCESS_TOKEN") || "";
 const viberBotToken = Deno.env.get("VIBER_BOT_TOKEN") || "";
+const appApiToken = Deno.env.get("APP_API_TOKEN") || "";
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -31,6 +32,10 @@ Deno.serve(async (req) => {
   }
 
   try {
+    if (!verifyAppToken(req)) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+
     const url = new URL(req.url);
     const routePath = stripFunctionPrefix(url.pathname, "api");
 
@@ -58,6 +63,13 @@ Deno.serve(async (req) => {
     return json({ error: "Internal error", details: String(error) }, 500);
   }
 });
+
+function verifyAppToken(req: Request) {
+  if (!appApiToken) {
+    return true;
+  }
+  return req.headers.get("X-App-Token") === appApiToken;
+}
 
 function stripFunctionPrefix(pathname: string, fnName: string) {
   const parts = pathname.split("/").filter(Boolean);

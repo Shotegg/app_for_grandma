@@ -12,10 +12,14 @@ class GrandmaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final apiClient = ApiClient(baseUrl: const String.fromEnvironment(
-      "API_BASE_URL",
-      defaultValue: "http://10.0.2.2:3000",
-    ));
+    const appApiToken = String.fromEnvironment("APP_API_TOKEN");
+    final apiClient = ApiClient(
+      baseUrl: const String.fromEnvironment(
+        "API_BASE_URL",
+        defaultValue: "http://10.0.2.2:3000",
+      ),
+      appApiToken: appApiToken.isEmpty ? null : appApiToken,
+    );
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -32,4 +36,3 @@ class GrandmaApp extends StatelessWidget {
     );
   }
 }
-
