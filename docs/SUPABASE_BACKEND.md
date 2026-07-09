@@ -32,6 +32,8 @@ The API function expects these tables and storage resources:
 - `read_state`
 - private storage bucket `voice`
 
+The migrations explicitly grant table access to `service_role` for Edge Functions and revoke direct table access from `anon` and `authenticated`. The Flutter app should call Edge Functions, not the database tables directly.
+
 The Flutter `API_BASE_URL` should point to the Edge Function URL, not the database REST URL.
 
 Typical local function URL:
